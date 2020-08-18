@@ -37,9 +37,6 @@ public class ProcessManagerService {
     @Autowired
     private ThreadSignallingConfiguration threadSignallingConfiguration;
 
-    @Value("${cloud.aws.end-point.uri}")
-    private String queueName;
-
     private Process process;
     private ProcessState processState = ProcessState.CLOSED;
 

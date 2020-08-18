@@ -3,11 +3,8 @@ package App.config;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Semaphore;
 
 @Component
 @Log4j2

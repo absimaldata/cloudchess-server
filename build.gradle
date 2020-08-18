@@ -33,8 +33,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     compile group: 'commons-io', name: 'commons-io', version: '2.7'
     compile group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
-// https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-sqs
-    compile group: 'com.amazonaws', name: 'aws-java-sdk-sqs', version: '1.11.836'
     compile('org.springframework.boot:spring-boot-starter-log4j2')
 
 }

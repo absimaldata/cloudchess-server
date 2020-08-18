@@ -6,22 +6,12 @@ import App.config.ThreadSignallingConfiguration;
 import App.enums.ProcessState;
 import App.service.tasks.ClientPushTask;
 import App.service.tasks.ProcessFlusherTask;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.model.*;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PostConstruct;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.ArrayDeque;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -36,16 +26,13 @@ public class ProcessManagerService {
     private ServerQueueConfig serverQueueConfig;
 
     @Autowired
-    private ClientPushService clientPushService;
+    private PendingMessagePushService pendingMessagePushService;
 
     @Autowired
     private ConfigFileAutoLoader configFileAutoLoader;
 
     @Autowired
     private HeartBeatService heartBeatService;
-
-    @Autowired
-    private AmazonSQSAsync amazonSQSAsync;
 
     @Autowired
     private ThreadSignallingConfiguration threadSignallingConfiguration;
@@ -83,10 +70,7 @@ public class ProcessManagerService {
 
         // Empty the queues
         serverQueueConfig.empty();
-        if(!purgeQueue()) {
-            emptyAWSQueue();
-        }
-
+        purgeQueue();
         this.processState = ProcessState.CLOSED;
     }
 
@@ -118,7 +102,7 @@ public class ProcessManagerService {
             String command = serverEngineConfig.getEngineName();
             this.process = rt.exec(command);
 
-            ClientPushTask clientPushTask = new ClientPushTask(process, clientPushService, threadSignallingConfiguration, new ArrayDeque<>());
+            ClientPushTask clientPushTask = new ClientPushTask(process, pendingMessagePushService, threadSignallingConfiguration, new ArrayDeque<>());
             clientPushServiceExecutor.submit(clientPushTask);
             Thread.sleep(100);
 
@@ -133,33 +117,11 @@ public class ProcessManagerService {
         }
     }
 
-    private boolean purgeQueue() {
+    private void purgeQueue() {
         try {
-            PurgeQueueRequest purgeQueueRequest = new PurgeQueueRequest();
-            purgeQueueRequest.setQueueUrl(queueName);
-            amazonSQSAsync.purgeQueue(purgeQueueRequest);
-            log.info("Queue has been purged");
-            return true;
+            pendingMessagePushService.clearPendingMessages();
         } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private void emptyAWSQueue() {
-        while(true) {
-            ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest();
-            receiveMessageRequest.setQueueUrl(queueName);
-            receiveMessageRequest.setMaxNumberOfMessages(10);
-
-            List<Message> messageList = amazonSQSAsync.receiveMessage(receiveMessageRequest).getMessages();
-            if(CollectionUtils.isEmpty(messageList)) {
-                log.info("Queue has been purged");
-                return;
-            }
-
-            for(Message message: messageList) {
-                amazonSQSAsync.deleteMessage(queueName, message.getReceiptHandle());
-            }
+            log.error("Error purging the queue", e);
         }
     }
 

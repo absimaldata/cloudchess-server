@@ -1,7 +1,7 @@
 package App.service.tasks;
 
 import App.config.ThreadSignallingConfiguration;
-import App.service.ClientPushService;
+import App.service.PendingMessagePushService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException;
 public class ClientPushTask implements Runnable {
 
     private Process process;
-    private ClientPushService clientPushService;
+    private PendingMessagePushService pendingMessagePushService;
     private ThreadSignallingConfiguration threadSignallingConfiguration;
     private Deque<String> buffer;
 
@@ -81,7 +81,7 @@ public class ClientPushTask implements Runnable {
                 stringBuilder.append(buffer.poll());
                 stringBuilder.append("\n");
             }
-            clientPushService.pushToClient(stringBuilder.toString());
+            pendingMessagePushService.pushToClient(stringBuilder.toString());
         }
     }
 }

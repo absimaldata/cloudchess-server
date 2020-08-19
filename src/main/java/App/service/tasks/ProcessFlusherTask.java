@@ -51,6 +51,7 @@ public class ProcessFlusherTask implements Runnable {
                         serverQueueConfig.poll();
                     } catch(IOException io) {
                         log.error("Error on received line: " + line, io);
+                        Thread.sleep(100);
                     }
                 }
                 Thread.sleep(10);

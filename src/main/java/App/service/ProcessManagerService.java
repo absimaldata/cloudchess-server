@@ -8,7 +8,6 @@ import App.service.tasks.ClientPushTask;
 import App.service.tasks.ProcessFlusherTask;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayDeque;
@@ -92,6 +91,7 @@ public class ProcessManagerService {
                 unloadProcess();
             }
             this.processState = ProcessState.STARTED;
+
             this.processFlusherService = Executors.newFixedThreadPool(1);
             this.clientPushServiceExecutor = Executors.newFixedThreadPool(1);
             threadSignallingConfiguration.setShutdown(false);
@@ -106,8 +106,6 @@ public class ProcessManagerService {
             ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(process, serverQueueConfig, threadSignallingConfiguration, this);
             processFlusherService.submit(processFlusherTask);
 
-
-            log.info("Loaded");
             //serverQueueConfig.offer("readyok");
         } catch (Exception e) {
             log.error("Exception in reloading the engine", e);

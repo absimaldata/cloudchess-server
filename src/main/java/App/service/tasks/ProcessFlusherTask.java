@@ -1,6 +1,5 @@
 package App.service.tasks;
 
-import App.config.ServerEngineConfig;
 import App.config.ServerQueueConfig;
 import App.config.ThreadSignallingConfiguration;
 import App.enums.ProcessState;
@@ -41,7 +40,7 @@ public class ProcessFlusherTask implements Runnable {
                     processWriter.close();
                     return;
                 }
-                String line = serverQueueConfig.poll();
+                String line = serverQueueConfig.peek();
                 if (line != null) {
                     if(processManagerService.getProcessState() != ProcessState.RUNNING) {
                         processManagerService.updateProcessState(ProcessState.RUNNING);
@@ -49,6 +48,7 @@ public class ProcessFlusherTask implements Runnable {
                     try {
                         processWriter.write(line + "\n");
                         processWriter.flush();
+                        serverQueueConfig.poll();
                     } catch(IOException io) {
                         log.error("Error on received line: " + line, io);
                     }

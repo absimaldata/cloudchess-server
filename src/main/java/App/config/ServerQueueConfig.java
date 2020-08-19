@@ -23,6 +23,10 @@ public class ServerQueueConfig {
         return serverQueue.poll();
     }
 
+    public String peek() {
+        return serverQueue.peek();
+    }
+
     public void empty() {
         this.serverQueue = new ArrayBlockingQueue<>(1000000, true);
     }

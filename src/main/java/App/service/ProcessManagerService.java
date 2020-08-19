@@ -90,8 +90,6 @@ public class ProcessManagerService {
             if(process != null) {
                 unloadProcess();
             }
-            this.processState = ProcessState.STARTED;
-
             this.processFlusherService = Executors.newFixedThreadPool(1);
             this.clientPushServiceExecutor = Executors.newFixedThreadPool(1);
             threadSignallingConfiguration.setShutdown(false);
@@ -106,7 +104,7 @@ public class ProcessManagerService {
             ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(process, serverQueueConfig, threadSignallingConfiguration, this);
             processFlusherService.submit(processFlusherTask);
 
-            //serverQueueConfig.offer("readyok");
+            this.processState = ProcessState.STARTED;
         } catch (Exception e) {
             log.error("Exception in reloading the engine", e);
         }
@@ -129,5 +127,9 @@ public class ProcessManagerService {
         synchronized (this) {
             this.processState = processState;
         }
+    }
+
+    public String isProcessStarted() {
+        return this.processState.name();
     }
 }

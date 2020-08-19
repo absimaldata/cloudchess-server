@@ -24,34 +24,36 @@ public class ProcessFlusherTask implements Runnable {
     public void run() {
         try(BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
             while (true) {
-                if(threadSignallingConfiguration.isStopAnalysis()) {
-                    processWriter.write("stop\n");
-                    processWriter.flush();
-                    threadSignallingConfiguration.setStopAnalysis(false);
-                    processManagerService.updateProcessState(ProcessState.STARTED);
-                }
-
-                if(threadSignallingConfiguration.isShutdown()) {
-                    // Sleep this thread so that Client push task can close first
-                    Thread.sleep(100);
-                    processWriter.write("quit\n");
-                    processWriter.flush();
-                    log.info("Closing tasks");
-                    processWriter.close();
-                    return;
-                }
-                String line = serverQueueConfig.peek();
-                if (line != null) {
-                    if(processManagerService.getProcessState() != ProcessState.RUNNING) {
-                        processManagerService.updateProcessState(ProcessState.RUNNING);
-                    }
-                    try {
-                        processWriter.write(line + "\n");
+                if(processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
+                    if (threadSignallingConfiguration.isStopAnalysis()) {
+                        processWriter.write("stop\n");
                         processWriter.flush();
-                        serverQueueConfig.poll();
-                    } catch(IOException io) {
-                        log.error("Error on received line: " + line, io);
+                        threadSignallingConfiguration.setStopAnalysis(false);
+                        processManagerService.updateProcessState(ProcessState.STARTED);
+                    }
+
+                    if (threadSignallingConfiguration.isShutdown()) {
+                        // Sleep this thread so that Client push task can close first
                         Thread.sleep(100);
+                        processWriter.write("quit\n");
+                        processWriter.flush();
+                        log.info("Closing tasks");
+                        processWriter.close();
+                        return;
+                    }
+                    String line = serverQueueConfig.peek();
+                    if (line != null) {
+                        if (processManagerService.getProcessState() != ProcessState.RUNNING) {
+                            processManagerService.updateProcessState(ProcessState.RUNNING);
+                        }
+                        try {
+                            processWriter.write(line + "\n");
+                            processWriter.flush();
+                            serverQueueConfig.poll();
+                        } catch (IOException io) {
+                            log.error("Error on received line: " + line, io);
+                            Thread.sleep(100);
+                        }
                     }
                 }
                 Thread.sleep(10);

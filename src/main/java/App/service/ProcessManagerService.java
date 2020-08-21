@@ -53,7 +53,7 @@ public class ProcessManagerService {
         return this.processState;
     }
 
-    public synchronized void unloadProcess() {
+    public void unloadProcess() {
         if(this.processState == ProcessState.CLOSED) {
             return;
         }
@@ -72,7 +72,7 @@ public class ProcessManagerService {
         this.processState = ProcessState.CLOSED;
     }
 
-    public synchronized void closeProcessThreads() {
+    public void closeProcessThreads() {
         try {
             this.threadSignallingConfiguration.setShutdown(true);
             Thread.sleep(200);
@@ -85,7 +85,7 @@ public class ProcessManagerService {
         }
     }
 
-    public synchronized void reload() {
+    public void reload() {
         try {
             if(this.processState == ProcessState.CLOSING) {
                 return;

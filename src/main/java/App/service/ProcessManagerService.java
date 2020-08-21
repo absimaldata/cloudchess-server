@@ -53,11 +53,7 @@ public class ProcessManagerService {
         return this.processState;
     }
 
-    public void unloadProcess() {
-        if(this.processState == ProcessState.CLOSED) {
-            return;
-        }
-
+    public synchronized void unloadProcess() {
         this.processState = ProcessState.CLOSING;
         closeProcessThreads();
 
@@ -71,16 +67,16 @@ public class ProcessManagerService {
         this.processState = ProcessState.CLOSED;
     }
 
-    public void closeProcessThreads() {
+    public synchronized void closeProcessThreads() {
         try {
             this.threadSignallingConfiguration.setShutdown(true);
-            Thread.sleep(200);
+            Thread.sleep(500);
         } catch (Exception e) {
             log.error("Exception in closing process threads");
         }
     }
 
-    public void reload() {
+    public synchronized void reload() {
         try {
             if(this.processState == ProcessState.STARTED || this.processState == ProcessState.CLOSING) {
                 return;

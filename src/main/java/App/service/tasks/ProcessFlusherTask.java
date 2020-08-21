@@ -23,43 +23,49 @@ public class ProcessFlusherTask implements Runnable {
     @Override
     public void run() {
         while (true) {
-            try (BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+            try {
                 if (processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
-                    if (threadSignallingConfiguration.isStopAnalysis()) {
-                        processWriter.write("stop\n");
-                        processWriter.flush();
-                        threadSignallingConfiguration.setStopAnalysis(false);
-                        processManagerService.updateProcessState(ProcessState.STARTED);
-                    }
-
-                    if (threadSignallingConfiguration.isShutdown()) {
-                        // Sleep this thread so that Client push task can close first
-                        Thread.sleep(100);
-                        processWriter.write("quit\n");
-                        processWriter.flush();
-                        log.info("Closing tasks");
-                        processWriter.close();
-                        return;
-                    }
-                    String line = serverQueueConfig.peek();
-                    if (line != null) {
-                        if (processManagerService.getProcessState() != ProcessState.RUNNING) {
-                            processManagerService.updateProcessState(ProcessState.RUNNING);
-                        }
-                        try {
-                            processWriter.write(line + "\n");
+                    try (BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+                        if (threadSignallingConfiguration.isStopAnalysis()) {
+                            processWriter.write("stop\n");
                             processWriter.flush();
-                            serverQueueConfig.poll();
-                        } catch (IOException io) {
-                            log.error("Error on received line: " + line, io);
-                            Thread.sleep(100);
+                            threadSignallingConfiguration.setStopAnalysis(false);
+                            processManagerService.updateProcessState(ProcessState.STARTED);
                         }
+
+                        if (threadSignallingConfiguration.isShutdown()) {
+                            // Sleep this thread so that Client push task can close first
+                            Thread.sleep(100);
+                            processWriter.write("quit\n");
+                            processWriter.flush();
+                            log.info("Closing tasks");
+                            processWriter.close();
+                            return;
+                        }
+                        String line = serverQueueConfig.peek();
+                        if (line != null) {
+                            if (processManagerService.getProcessState() != ProcessState.RUNNING) {
+                                processManagerService.updateProcessState(ProcessState.RUNNING);
+                            }
+                            try {
+                                processWriter.write(line + "\n");
+                                processWriter.flush();
+                                serverQueueConfig.poll();
+                            } catch (IOException io) {
+                                log.error("Error on received line: " + line, io);
+                                Thread.sleep(100);
+                            }
+                        }
+
+                        Thread.sleep(10);
+                    } catch (Exception e) {
+                        log.info("Closing tasks", e);
                     }
-                }
+                } //if
                 Thread.sleep(10);
             } catch (Exception e) {
-                log.info("Closing tasks", e);
+                log.info("Exception in while loop", e);
             }
-        }
+        } // while
     }
 }

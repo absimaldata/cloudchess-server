@@ -21,6 +21,7 @@ public class ProcessFlusherTask implements Runnable {
 
     @Override
     public void run() {
+        log.info("Process flusher started.");
         while (true) {
             try {
                 if (threadSignallingConfiguration.isStopAnalysis()) {
@@ -57,6 +58,7 @@ public class ProcessFlusherTask implements Runnable {
                         } catch (IOException io) {
                             log.error("Error on received line: " + line, io);
                             processWriter.close();
+                            this.threadSignallingConfiguration.setShutdown(false);
                             return;
                         }
                     }
@@ -64,6 +66,7 @@ public class ProcessFlusherTask implements Runnable {
                 Thread.sleep(10);
             } catch (Exception e) {
                 log.info("Exception in while loop", e);
+                this.threadSignallingConfiguration.setShutdown(false);
                 return;
             }
         } // while

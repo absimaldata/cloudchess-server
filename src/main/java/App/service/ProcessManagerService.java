@@ -59,13 +59,12 @@ public class ProcessManagerService {
         }
 
         this.processState = ProcessState.CLOSING;
-        log.info("Unloading process");
         closeProcessThreads();
+
         if(process != null) {
             process.destroyForcibly();
             this.process = null;
         }
-
         // Empty the queues
         serverQueueConfig.empty();
         purgeQueue();
@@ -87,6 +86,7 @@ public class ProcessManagerService {
 
     public void reload() {
         try {
+            log.info("Thread signalling:" + threadSignallingConfiguration.isShutdown());
             if(this.processState == ProcessState.CLOSING) {
                 return;
             }
@@ -95,11 +95,6 @@ public class ProcessManagerService {
             log.info("Reloading");
             if(process != null) {
                 unloadProcess();
-            }
-
-            while(threadSignallingConfiguration.isShutdown()) {
-                log.info("Waiting for threads to close");
-                Thread.sleep(100);
             }
 
             this.processFlusherService = Executors.newFixedThreadPool(1);
@@ -113,10 +108,10 @@ public class ProcessManagerService {
             clientPushServiceExecutor.submit(clientPushTask);
 
             BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-            Thread.sleep(1000);
             ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(processWriter, serverQueueConfig, threadSignallingConfiguration, this);
             processFlusherService.submit(processFlusherTask);
 
+            Thread.sleep(1000);
             this.processState = ProcessState.STARTED;
             log.info("Reload Complete");
 

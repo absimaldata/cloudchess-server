@@ -85,6 +85,10 @@ public class ProcessManagerService {
 
     public synchronized void reload() {
         try {
+            if(this.processState == ProcessState.CLOSING) {
+                return;
+            }
+            this.processState = ProcessState.CLOSING;
             heartBeatService.processHeartBeat();
             log.info("Reloading");
             if(process != null) {

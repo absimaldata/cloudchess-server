@@ -97,8 +97,8 @@ public class ProcessManagerService {
                 unloadProcess();
             }
 
-
             while(threadSignallingConfiguration.isShutdown()) {
+                log.info("Waiting for threads to close");
                 Thread.sleep(100);
             }
 

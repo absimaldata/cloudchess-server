@@ -2,6 +2,7 @@ package App.service;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -29,7 +30,9 @@ public class PendingMessagePushService {
         for(int i = 0; i < size; i++) {
             messages.add(pendingMessageQueue.poll());
         }
-        log.info("Going to send lines to client. " + messages);
+        if(!CollectionUtils.isEmpty(messages)) {
+            log.info("Going to send lines to client. " + messages);
+        }
         return messages;
     }
 

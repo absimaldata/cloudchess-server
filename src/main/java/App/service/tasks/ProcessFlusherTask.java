@@ -56,6 +56,7 @@ public class ProcessFlusherTask implements Runnable {
                 Thread.sleep(10);
             } catch (Exception e) {
                 log.info("Exception in while loop", e);
+                return;
             }
         } // while
     }

@@ -21,25 +21,16 @@ public class ProcessFlusherTask implements Runnable {
 
     @Override
     public void run() {
-        log.info("Process flusher started.");
         while (true) {
             try {
-                if (threadSignallingConfiguration.isStopAnalysis()) {
-                    if(processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
-                        processWriter.write("stop\n");
-                        processWriter.flush();
-                    }
-                    threadSignallingConfiguration.setStopAnalysis(false);
-                    processManagerService.updateProcessState(ProcessState.STARTED);
-                }
-
-                if (threadSignallingConfiguration.isShutdown()) {
-                    if(processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
+                if (threadSignallingConfiguration.isProcessFlusherTask()) {
+                    threadSignallingConfiguration.setProcessFlusherTask(false);
+                    if(processManagerService.getProcessState() == ProcessState.CLOSING || processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
                         processWriter.write("quit\n");
                         processWriter.flush();
                     }
                     log.info("Closing process flusher");
-                    threadSignallingConfiguration.setShutdown(false);
+                    threadSignallingConfiguration.setProcessFlusherTask(false);
                     processManagerService.updateProcessState(ProcessState.CLOSED);
                     processWriter.close();
                     return;
@@ -58,7 +49,7 @@ public class ProcessFlusherTask implements Runnable {
                         } catch (IOException io) {
                             log.error("Error on received line: " + line, io);
                             processWriter.close();
-                            this.threadSignallingConfiguration.setShutdown(false);
+                            this.threadSignallingConfiguration.setProcessFlusherTask(false);
                             return;
                         }
                     }
@@ -66,7 +57,7 @@ public class ProcessFlusherTask implements Runnable {
                 Thread.sleep(10);
             } catch (Exception e) {
                 log.info("Exception in while loop", e);
-                this.threadSignallingConfiguration.setShutdown(false);
+                this.threadSignallingConfiguration.setProcessFlusherTask(false);
                 return;
             }
         } // while

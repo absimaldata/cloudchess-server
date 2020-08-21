@@ -28,7 +28,8 @@ public class ClientPushTask implements Runnable {
             CompletableFuture<String> future = null;
             boolean timeout = false;
             while (true) {
-                if(threadSignallingConfiguration.isShutdown()) {
+                if(threadSignallingConfiguration.isClientPushTask()) {
+                    threadSignallingConfiguration.setClientPushTask(false);
                     emptyBufferAndSendToQueue();
                     log.info("Closing tasks");
                     processOutput.close();
@@ -71,6 +72,7 @@ public class ClientPushTask implements Runnable {
             }
         } catch (Exception e) {
             log.error("Closing tasks", e);
+            threadSignallingConfiguration.setClientPushTask(false);
         }
     }
 

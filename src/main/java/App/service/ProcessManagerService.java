@@ -41,9 +41,7 @@ public class ProcessManagerService {
     private Process process;
     private ProcessState processState = ProcessState.CLOSED;
 
-    private ExecutorService processFlusherService = Executors.newFixedThreadPool(1);
-    private ExecutorService clientPushServiceExecutor= Executors.newFixedThreadPool(1);
-
+    private ExecutorService threadExecutor = Executors.newFixedThreadPool(2);
 
     public Process getProcess() {
         return this.process;
@@ -69,8 +67,12 @@ public class ProcessManagerService {
 
     public synchronized void closeProcessThreads() {
         try {
-            this.threadSignallingConfiguration.setShutdown(true);
-            Thread.sleep(500);
+            this.threadSignallingConfiguration.setProcessFlusherTask(true);
+            this.threadSignallingConfiguration.setClientPushTask(true);
+            while(this.threadSignallingConfiguration.isClientPushTask() || this.threadSignallingConfiguration.isProcessFlusherTask()) {
+                log.info("Waiting for threads to close");
+                Thread.sleep(100);
+            }
         } catch (Exception e) {
             log.error("Exception in closing process threads");
         }
@@ -82,32 +84,26 @@ public class ProcessManagerService {
                 return;
             }
 
-            if(this.processState == ProcessState.RUNNING) {
-                threadSignallingConfiguration.setStopAnalysis(true);
-                Thread.sleep(100);
-            }
-
             this.processState = ProcessState.CLOSING;
             log.info("Reloading");
             if(process != null) {
                 unloadProcess();
             }
 
-            this.processFlusherService = Executors.newFixedThreadPool(1);
-            this.clientPushServiceExecutor = Executors.newFixedThreadPool(1);
+            this.threadExecutor = Executors.newFixedThreadPool(2);
 
             Runtime rt = Runtime.getRuntime();
             String command = serverEngineConfig.getEngineName();
             this.process = rt.exec(command);
 
             ClientPushTask clientPushTask = new ClientPushTask(process, pendingMessagePushService, threadSignallingConfiguration, new ArrayDeque<>());
-            clientPushServiceExecutor.submit(clientPushTask);
+            this.threadExecutor.submit(clientPushTask);
 
             log.info("Submitted client push task");
 
             BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
             ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(processWriter, serverQueueConfig, threadSignallingConfiguration, this);
-            processFlusherService.submit(processFlusherTask);
+            this.threadExecutor.submit(processFlusherTask);
 
             log.info("Submitted process flusher task");
 
@@ -134,7 +130,7 @@ public class ProcessManagerService {
     }
 
     public void updateProcessState(ProcessState processState) {
-        synchronized (this) {
+        synchronized (this.processState) {
             this.processState = processState;
         }
     }

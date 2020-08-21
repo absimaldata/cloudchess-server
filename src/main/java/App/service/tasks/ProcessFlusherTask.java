@@ -38,7 +38,8 @@ public class ProcessFlusherTask implements Runnable {
                         processWriter.close();
                         return;
                     }
-                    String line = serverQueueConfig.peek();
+
+                    String line = serverQueueConfig.poll();
                     if (line != null) {
                         if (processManagerService.getProcessState() != ProcessState.RUNNING) {
                             processManagerService.updateProcessState(ProcessState.RUNNING);
@@ -46,7 +47,6 @@ public class ProcessFlusherTask implements Runnable {
                         try {
                             processWriter.write(line + "\n");
                             processWriter.flush();
-                            serverQueueConfig.poll();
                         } catch (IOException io) {
                             log.error("Error on received line: " + line, io);
                             Thread.sleep(10);

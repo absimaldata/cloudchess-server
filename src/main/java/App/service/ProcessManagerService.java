@@ -86,12 +86,16 @@ public class ProcessManagerService {
 
     public void reload() {
         try {
-            log.info("Thread signalling:" + threadSignallingConfiguration.isShutdown());
-            if(this.processState == ProcessState.CLOSING) {
+            if(this.processState == ProcessState.STARTED || this.processState == ProcessState.CLOSING) {
                 return;
             }
+
+            if(this.processState == ProcessState.RUNNING) {
+                threadSignallingConfiguration.setStopAnalysis(true);
+                Thread.sleep(100);
+            }
+
             this.processState = ProcessState.CLOSING;
-            heartBeatService.processHeartBeat();
             log.info("Reloading");
             if(process != null) {
                 unloadProcess();

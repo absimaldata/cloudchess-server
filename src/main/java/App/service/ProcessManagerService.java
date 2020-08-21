@@ -10,6 +10,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
 import java.util.ArrayDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,7 +72,7 @@ public class ProcessManagerService {
         this.processState = ProcessState.CLOSED;
     }
 
-    public void closeProcessThreads() {
+    public synchronized void closeProcessThreads() {
         try {
             this.threadSignallingConfiguration.setShutdown(true);
             Thread.sleep(200);
@@ -94,21 +96,26 @@ public class ProcessManagerService {
             if(process != null) {
                 unloadProcess();
             }
-            threadSignallingConfiguration.setShutdown(false);
             this.processFlusherService = Executors.newFixedThreadPool(1);
             this.clientPushServiceExecutor = Executors.newFixedThreadPool(1);
+            threadSignallingConfiguration.setShutdown(false);
+
             Runtime rt = Runtime.getRuntime();
             String command = serverEngineConfig.getEngineName();
             this.process = rt.exec(command);
+
 
             ClientPushTask clientPushTask = new ClientPushTask(process, pendingMessagePushService, threadSignallingConfiguration, new ArrayDeque<>());
             clientPushServiceExecutor.submit(clientPushTask);
             Thread.sleep(100);
 
-            ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(process, serverQueueConfig, threadSignallingConfiguration, this);
+            BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+            ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(processWriter, serverQueueConfig, threadSignallingConfiguration, this);
             processFlusherService.submit(processFlusherTask);
 
             this.processState = ProcessState.STARTED;
+            log.info("Reload Complete");
+
         } catch (Exception e) {
             log.error("Exception in reloading the engine", e);
         }

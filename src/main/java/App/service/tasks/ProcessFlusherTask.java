@@ -49,7 +49,7 @@ public class ProcessFlusherTask implements Runnable {
                             processWriter.flush();
                         } catch (IOException io) {
                             log.error("Error on received line: " + line, io);
-                            Thread.sleep(10);
+                            return;
                         }
                     }
                 }

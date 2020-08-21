@@ -22,9 +22,9 @@ public class ProcessFlusherTask implements Runnable {
 
     @Override
     public void run() {
-        try(BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
-            while (true) {
-                if(processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
+        while (true) {
+            try (BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+                if (processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
                     if (threadSignallingConfiguration.isStopAnalysis()) {
                         processWriter.write("stop\n");
                         processWriter.flush();
@@ -57,9 +57,9 @@ public class ProcessFlusherTask implements Runnable {
                     }
                 }
                 Thread.sleep(10);
+            } catch (Exception e) {
+                log.info("Closing tasks", e);
             }
-        } catch (Exception e) {
-            log.info("Closing tasks", e);
         }
     }
 }

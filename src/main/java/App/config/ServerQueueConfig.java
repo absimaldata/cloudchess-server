@@ -3,13 +3,13 @@ package App.config;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 @Component
 @Log4j2
 public class ServerQueueConfig {
-    private BlockingQueue<String> serverQueue = new ArrayBlockingQueue<>(1000000, true);
+    private Deque<String> serverQueue = new ArrayDeque<>();
 
     public void offer(String line) {
         try {
@@ -28,6 +28,6 @@ public class ServerQueueConfig {
     }
 
     public void empty() {
-        this.serverQueue = new ArrayBlockingQueue<>(1000000, true);
+        this.serverQueue = new ArrayDeque<>();
     }
 }

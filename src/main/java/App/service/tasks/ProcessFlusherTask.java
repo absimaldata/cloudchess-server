@@ -32,8 +32,6 @@ public class ProcessFlusherTask implements Runnable {
                     }
 
                     if (threadSignallingConfiguration.isShutdown()) {
-                        // Sleep this thread so that Client push task can close first
-                        Thread.sleep(100);
                         processWriter.write("quit\n");
                         processWriter.flush();
                         log.info("Closing tasks");
@@ -51,7 +49,7 @@ public class ProcessFlusherTask implements Runnable {
                             serverQueueConfig.poll();
                         } catch (IOException io) {
                             log.error("Error on received line: " + line, io);
-                            Thread.sleep(100);
+                            Thread.sleep(10);
                         }
                     }
                 }

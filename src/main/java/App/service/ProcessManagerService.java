@@ -104,10 +104,10 @@ public class ProcessManagerService {
             String command = serverEngineConfig.getEngineName();
             this.process = rt.exec(command);
 
-
+            Thread.sleep(1000);
             ClientPushTask clientPushTask = new ClientPushTask(process, pendingMessagePushService, threadSignallingConfiguration, new ArrayDeque<>());
             clientPushServiceExecutor.submit(clientPushTask);
-            Thread.sleep(100);
+
 
             BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
             ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(processWriter, serverQueueConfig, threadSignallingConfiguration, this);

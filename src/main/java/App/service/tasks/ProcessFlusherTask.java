@@ -37,7 +37,9 @@ public class ProcessFlusherTask implements Runnable {
                         processWriter.write("quit\n");
                         processWriter.flush();
                     }
-                    log.info("Closing tasks");
+                    log.info("Closing process flusher");
+                    threadSignallingConfiguration.setShutdown(false);
+                    processManagerService.updateProcessState(ProcessState.CLOSED);
                     processWriter.close();
                     return;
                 }
@@ -49,10 +51,12 @@ public class ProcessFlusherTask implements Runnable {
                             processManagerService.updateProcessState(ProcessState.RUNNING);
                         }
                         try {
+                            log.info("Going to write line: " +line);
                             processWriter.write(line + "\n");
                             processWriter.flush();
                         } catch (IOException io) {
                             log.error("Error on received line: " + line, io);
+                            processWriter.close();
                             return;
                         }
                     }

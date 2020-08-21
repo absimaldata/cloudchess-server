@@ -23,22 +23,26 @@ public class ProcessFlusherTask implements Runnable {
     public void run() {
         while (true) {
             try {
-                if (processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
-                    if (threadSignallingConfiguration.isStopAnalysis()) {
+                if (threadSignallingConfiguration.isStopAnalysis()) {
+                    if(processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
                         processWriter.write("stop\n");
                         processWriter.flush();
-                        threadSignallingConfiguration.setStopAnalysis(false);
-                        processManagerService.updateProcessState(ProcessState.STARTED);
                     }
+                    threadSignallingConfiguration.setStopAnalysis(false);
+                    processManagerService.updateProcessState(ProcessState.STARTED);
+                }
 
-                    if (threadSignallingConfiguration.isShutdown()) {
+                if (threadSignallingConfiguration.isShutdown()) {
+                    if(processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
                         processWriter.write("quit\n");
                         processWriter.flush();
-                        log.info("Closing tasks");
-                        processWriter.close();
-                        return;
                     }
+                    log.info("Closing tasks");
+                    processWriter.close();
+                    return;
+                }
 
+                if (processManagerService.getProcessState() == ProcessState.STARTED || processManagerService.getProcessState() == ProcessState.RUNNING) {
                     String line = serverQueueConfig.poll();
                     if (line != null) {
                         if (processManagerService.getProcessState() != ProcessState.RUNNING) {

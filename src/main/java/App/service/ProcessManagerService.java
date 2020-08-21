@@ -75,10 +75,6 @@ public class ProcessManagerService {
         try {
             this.threadSignallingConfiguration.setShutdown(true);
             Thread.sleep(200);
-            if (processFlusherService != null && clientPushServiceExecutor != null) {
-                this.processFlusherService.shutdownNow();
-                this.clientPushServiceExecutor.shutdownNow();
-            }
         } catch (Exception e) {
             log.error("Exception in closing process threads");
         }

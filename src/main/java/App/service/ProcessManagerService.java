@@ -94,9 +94,9 @@ public class ProcessManagerService {
             if(process != null) {
                 unloadProcess();
             }
+            threadSignallingConfiguration.setShutdown(false);
             this.processFlusherService = Executors.newFixedThreadPool(1);
             this.clientPushServiceExecutor = Executors.newFixedThreadPool(1);
-            threadSignallingConfiguration.setShutdown(false);
             Runtime rt = Runtime.getRuntime();
             String command = serverEngineConfig.getEngineName();
             this.process = rt.exec(command);

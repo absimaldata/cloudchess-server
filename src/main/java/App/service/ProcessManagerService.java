@@ -6,11 +6,14 @@ import App.config.ThreadSignallingConfiguration;
 import App.enums.ProcessState;
 import App.service.tasks.ClientPushTask;
 import App.service.tasks.ProcessFlusherTask;
+import App.service.tasks.StdErrReaderTask;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayDeque;
 import java.util.concurrent.ExecutorService;
@@ -41,7 +44,7 @@ public class ProcessManagerService {
     private Process process;
     private ProcessState processState = ProcessState.CLOSED;
 
-    private ExecutorService threadExecutor = Executors.newFixedThreadPool(2);
+    private ExecutorService threadExecutor = Executors.newFixedThreadPool(3);
 
     public Process getProcess() {
         return this.process;
@@ -90,7 +93,7 @@ public class ProcessManagerService {
                 unloadProcess();
             }
 
-            this.threadExecutor = Executors.newFixedThreadPool(2);
+            this.threadExecutor = Executors.newFixedThreadPool(3);
 
             Runtime rt = Runtime.getRuntime();
             String command = serverEngineConfig.getEngineName();
@@ -106,6 +109,12 @@ public class ProcessManagerService {
             this.threadExecutor.submit(processFlusherTask);
 
             log.info("Submitted process flusher task");
+
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            StdErrReaderTask stdErrReaderTask = new StdErrReaderTask(bufferedReader, pendingMessagePushService);
+            this.threadExecutor.submit(stdErrReaderTask);
+
+            log.info("Submitted error reader task");
 
             Thread.sleep(1000);
             this.processState = ProcessState.STARTED;

@@ -8,10 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Log4j2
 public class PendingMessagePushService {
+
+    private ReentrantLock reentrantLock = new ReentrantLock();
 
     private BlockingQueue<String> pendingMessageQueue = new LinkedBlockingQueue<>();
 
@@ -27,13 +30,15 @@ public class PendingMessagePushService {
     public List<String> pollMessages() {
         List<String> messages = new ArrayList<>();
         int size = pendingMessageQueue.size();
-        for(int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             messages.add(pendingMessageQueue.poll());
         }
-        if(!CollectionUtils.isEmpty(messages)) {
+        if (!CollectionUtils.isEmpty(messages)) {
             log.info("Going to send lines to client. " + messages);
+            return messages;
+        } else {
+            return null;
         }
-        return messages;
     }
 
     public void clearPendingMessages() {

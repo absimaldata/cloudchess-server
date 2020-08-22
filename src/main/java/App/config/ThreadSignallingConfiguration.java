@@ -17,7 +17,7 @@ public class ThreadSignallingConfiguration {
         return processFlusherTask;
     }
 
-    public void setProcessFlusherTask(boolean processFlusherTask) {
+    public synchronized void setProcessFlusherTask(boolean processFlusherTask) {
         this.processFlusherTask = processFlusherTask;
     }
 
@@ -25,7 +25,7 @@ public class ThreadSignallingConfiguration {
         return clientPushTask;
     }
 
-    public void setClientPushTask(boolean clientPushTask) {
+    public synchronized void setClientPushTask(boolean clientPushTask) {
         this.clientPushTask = clientPushTask;
     }
 

@@ -44,7 +44,8 @@ public class PublishController {
 
     @GetMapping("/pull")
     public List<String> pull() {
-        return pendingMessagePushService.pollMessages();
+        List<String> msg =  pendingMessagePushService.pollMessages();
+        return msg;
     }
 
     @GetMapping("/heartbeat")

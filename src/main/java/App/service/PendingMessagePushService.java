@@ -4,16 +4,16 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @Service
 @Log4j2
 public class PendingMessagePushService {
 
-    private Deque<String> pendingMessageQueue = new ArrayDeque<>();
+    private BlockingQueue<String> pendingMessageQueue = new LinkedBlockingQueue<>();
 
     public void pushToClient(String line) {
         try {
@@ -37,6 +37,6 @@ public class PendingMessagePushService {
     }
 
     public void clearPendingMessages() {
-        this.pendingMessageQueue = new ArrayDeque<>();
+        this.pendingMessageQueue = new LinkedBlockingQueue<>();
     }
 }

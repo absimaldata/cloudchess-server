@@ -21,7 +21,7 @@ public class PendingMessagePushService {
     public void pushToClient(String line) {
         try {
             pendingMessageQueue.offer(line);
-            log.info("Pushed to pending message queue");
+            //log.info("Pushed to pending message queue");
         } catch (Exception e) {
             log.error("SQS Queue is not ready to accept line: " + line, e);
         }
@@ -34,7 +34,7 @@ public class PendingMessagePushService {
             messages.add(pendingMessageQueue.poll());
         }
         if (!CollectionUtils.isEmpty(messages)) {
-            log.info("Going to send lines to client. " + messages);
+            //log.info("Going to send lines to client. " + messages);
             return messages;
         } else {
             return null;

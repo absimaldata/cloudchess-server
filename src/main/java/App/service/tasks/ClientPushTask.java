@@ -28,6 +28,12 @@ public class ClientPushTask implements Runnable {
             CompletableFuture<String> future = null;
             boolean timeout = false;
             while (true) {
+                if(threadSignallingConfiguration.isStopRead()) {
+                    threadSignallingConfiguration.setStopState(true);
+                    Thread.sleep(50);
+                    continue;
+                }
+                threadSignallingConfiguration.setStopState(false);
                 if(threadSignallingConfiguration.isClientPushTask()) {
                     threadSignallingConfiguration.setClientPushTask(false);
                     emptyBufferAndSendToQueue();
@@ -80,7 +86,8 @@ public class ClientPushTask implements Runnable {
         if(buffer.size() != 0) {
             StringBuilder stringBuilder = new StringBuilder();
             while (this.buffer.size() != 0) {
-                stringBuilder.append(buffer.poll());
+                String line = buffer.poll();
+                stringBuilder.append(line);
                 stringBuilder.append("\n");
             }
             pendingMessagePushService.pushToClient(stringBuilder.toString());

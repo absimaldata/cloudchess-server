@@ -105,7 +105,7 @@ public class ProcessManagerService {
             log.info("Submitted client push task");
 
             BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-            ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(processWriter, serverQueueConfig, threadSignallingConfiguration, this);
+            ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(processWriter, serverQueueConfig, threadSignallingConfiguration, this, serverEngineConfig);
             this.threadExecutor.submit(processFlusherTask);
 
             log.info("Submitted process flusher task");

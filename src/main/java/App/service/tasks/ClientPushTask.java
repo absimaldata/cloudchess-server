@@ -67,7 +67,6 @@ public class ClientPushTask implements Runnable {
                 } catch (TimeoutException t) {
                     timeout = true;
                     emptyBufferAndSendToQueue();
-                    Thread.sleep(10);
                 }
             }
         } catch (Exception e) {

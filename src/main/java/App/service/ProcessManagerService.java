@@ -105,7 +105,7 @@ public class ProcessManagerService {
             log.info("Submitted client push task");
 
             BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-            ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(processWriter, serverQueueConfig, threadSignallingConfiguration, this);
+            ProcessFlusherTask processFlusherTask = new ProcessFlusherTask(processWriter, serverQueueConfig, threadSignallingConfiguration, this, serverEngineConfig.getEngineOptions());
             this.threadExecutor.submit(processFlusherTask);
 
             log.info("Submitted process flusher task");
@@ -116,7 +116,7 @@ public class ProcessManagerService {
 
             log.info("Submitted error reader task");
 
-            Thread.sleep(1000);
+            Thread.sleep(200);
             this.processState = ProcessState.STARTED;
             log.info("Reload Complete");
 

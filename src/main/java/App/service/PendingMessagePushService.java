@@ -8,13 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Log4j2
 public class PendingMessagePushService {
-
-    private ReentrantLock reentrantLock = new ReentrantLock();
 
     private BlockingQueue<String> pendingMessageQueue = new LinkedBlockingQueue<>();
 

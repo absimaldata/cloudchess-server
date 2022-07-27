@@ -55,6 +55,7 @@ public class ProcessManagerService {
     }
 
     public synchronized void unloadProcess() {
+        Thread.currentThread().setPriority(8);
         this.processState = ProcessState.CLOSING;
         closeProcessThreads();
 
@@ -69,6 +70,7 @@ public class ProcessManagerService {
     }
 
     public synchronized void closeProcessThreads() {
+        Thread.currentThread().setPriority(8);
         try {
             this.threadSignallingConfiguration.setProcessFlusherTask(true);
             this.threadSignallingConfiguration.setClientPushTask(true);
@@ -82,6 +84,7 @@ public class ProcessManagerService {
     }
 
     public synchronized void reload() {
+        Thread.currentThread().setPriority(8);
         try {
             if(this.processState == ProcessState.STARTED || this.processState == ProcessState.CLOSING) {
                 return;

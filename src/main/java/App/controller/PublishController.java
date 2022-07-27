@@ -33,6 +33,7 @@ public class PublishController {
     @PostMapping("/publish")
     public String publish(@RequestBody String line) {
         try {
+            Thread.currentThread().setPriority(8);
             log.info("Recieved line: " + line);
             serverQueueConfig.offer(line);
             return ResponseStatus.SUCCESS;
@@ -44,6 +45,7 @@ public class PublishController {
 
     @GetMapping("/pull")
     public List<String> pull() {
+        Thread.currentThread().setPriority(8);
         List<String> msg =  pendingMessagePushService.pollMessages();
         return msg;
     }

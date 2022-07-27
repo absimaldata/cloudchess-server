@@ -9,9 +9,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Deque;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @AllArgsConstructor
 @Log4j2
@@ -24,8 +21,8 @@ public class ClientPushTask implements Runnable {
 
     @Override
     public void run() {
+        Thread.currentThread().setPriority(8);
         try(BufferedReader processOutput = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            CompletableFuture<String> future = null;
             boolean timeout = false;
             while (true) {
                 if(threadSignallingConfiguration.isClientPushTask()) {
@@ -35,26 +32,20 @@ public class ClientPushTask implements Runnable {
                     processOutput.close();
                     return;
                 }
-                if(buffer.size() == 30) {
-                    emptyBufferAndSendToQueue();
-                }
+                emptyBufferAndSendToQueue();
                 String line = null;
                 if(!timeout) {
-                    future = CompletableFuture.supplyAsync(() -> {
-                        String readLine = null;
-                        try {
-                            readLine = processOutput.readLine();
-                        } catch (IOException e) {
-                            log.error("IO Exception, emptying the buffer", e);
-                            emptyBufferAndSendToQueue();
-                            return null;
-                        }
-                        return readLine;
-                    });
+                    String readLine = null;
+                    try {
+                        readLine = processOutput.readLine();
+                    } catch (IOException e) {
+                        log.error("IO Exception, emptying the buffer", e);
+                        emptyBufferAndSendToQueue();
+                    }
+                    line = readLine;
                 }
 
                 try {
-                    line = future.get(5, TimeUnit.MILLISECONDS);
                     if(line == null) {
                         continue;
                     }
@@ -64,7 +55,7 @@ public class ClientPushTask implements Runnable {
                         buffer.offer(line);
                     }
                     timeout = false;
-                } catch (TimeoutException t) {
+                } catch (Exception t) {
                     timeout = true;
                     emptyBufferAndSendToQueue();
                 }

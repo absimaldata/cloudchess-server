@@ -24,6 +24,7 @@ public class ProcessFlusherTask implements Runnable {
 
     @Override
     public void run() {
+        Thread.currentThread().setPriority(8);
         while (true) {
             try {
                 if (threadSignallingConfiguration.isProcessFlusherTask()) {
